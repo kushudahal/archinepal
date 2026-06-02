@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 42 36% 97%;
+  --foreground: 120 4% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 120 4% 9%;
+  --primary: 118 8% 15%;
+  --primary-foreground: 42 36% 97%;
+  --secondary: 40 32% 88%;
+  --secondary-foreground: 118 8% 15%;
+  --muted: 42 24% 92%;
+  --muted-foreground: 115 6% 42%;
+  --accent: 132 8% 44%;
+  --accent-foreground: 42 36% 97%;
+  --border: 40 18% 84%;
+  --input: 40 18% 84%;
+  --ring: 132 8% 44%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+::selection {
+  background: #667769;
+  color: #fff;
+}
+
+.glass {
+  background: rgba(246, 243, 236, 0.72);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+}
+
+.dark-glass {
+  background: rgba(21, 23, 21, 0.58);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.masonry {
+  columns: 1;
+  column-gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .masonry {
+    columns: 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .masonry {
+    columns: 3;
+  }
+}
+
+@media (min-width: 1280px) {
+  .masonry {
+    columns: 4;
+  }
+}

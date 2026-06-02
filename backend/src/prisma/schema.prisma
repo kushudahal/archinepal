@@ -1,0 +1,346 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  architect
+  civil_engineer
+  interior_designer
+  student
+  firm_owner
+  admin
+  super_admin
+  moderator
+  editor
+}
+
+enum ProjectCategory {
+  residential
+  commercial
+  interior
+  landscape
+  urban
+  structural
+  BIM
+}
+
+enum ProjectStatus {
+  draft
+  pending_review
+  published
+  rejected
+  archived
+}
+
+enum EmploymentType {
+  full_time
+  part_time
+  contract
+  internship
+  remote
+}
+
+enum EventType {
+  seminar
+  workshop
+  webinar
+  competition
+  architecture_walk
+}
+
+enum NotificationType {
+  like
+  comment
+  follow
+  project_featured
+  event_reminder
+  job_alert
+  system
+}
+
+enum ReportStatus {
+  open
+  investigating
+  resolved
+  dismissed
+}
+
+model User {
+  id                String         @id @default(uuid())
+  name              String
+  email             String         @unique
+  password          String
+  role              Role           @default(student)
+  avatar            String?
+  bio               String?
+  location          String?
+  website           String?
+  isEmailVerified   Boolean        @default(false)
+  isSuspended       Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  profile           Profile?
+  ownedFirms        Firm[]         @relation("FirmOwner")
+  projects          Project[]
+  jobs              Job[]
+  articles          Article[]
+  events            Event[]
+  comments          Comment[]
+  likes             Like[]
+  bookmarks         Bookmark[]
+  notifications     Notification[] @relation("RecipientNotifications")
+  sessions          Session[]
+  passwordResets    PasswordReset[]
+  emailTokens       EmailVerification[]
+  sentReports       Report[]       @relation("Reporter")
+
+  @@index([role])
+  @@index([createdAt])
+}
+
+model Profile {
+  userId              String   @id
+  specialization      String?
+  experienceYears     Int      @default(0)
+  softwareSkills      String[] @default([])
+  education           Json?
+  certifications      String[] @default([])
+  socialLinks         Json?
+  portfolioVisibility Boolean  @default(true)
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Firm {
+  id            String    @id @default(uuid())
+  name          String
+  slug          String    @unique
+  description   String
+  logo          String?
+  banner        String?
+  services      String[]  @default([])
+  location      String
+  website       String?
+  employeeCount Int?
+  foundedYear   Int?
+  ownerId       String
+  owner         User      @relation("FirmOwner", fields: [ownerId], references: [id])
+  projects      Project[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([location])
+  @@index([ownerId])
+}
+
+model Project {
+  id               String          @id @default(uuid())
+  title            String
+  slug             String          @unique
+  description      String
+  category         ProjectCategory
+  location         String
+  softwareUsed     String[]        @default([])
+  coverImage       String
+  galleryImages    String[]        @default([])
+  projectYear      Int?
+  status           ProjectStatus   @default(pending_review)
+  userId           String
+  firmId           String?
+  views            Int             @default(0)
+  likesCount       Int             @default(0)
+  tags             String[]        @default([])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  user             User            @relation(fields: [userId], references: [id])
+  firm             Firm?           @relation(fields: [firmId], references: [id])
+  comments         Comment[]
+  likes            Like[]
+  bookmarks        Bookmark[]
+  reports          Report[]
+
+  @@index([category])
+  @@index([location])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model Job {
+  id             String         @id @default(uuid())
+  title          String
+  description    String
+  company        String
+  location       String
+  employmentType EmploymentType
+  salaryRange    String?
+  requirements   String[]       @default([])
+  deadline       DateTime?
+  createdBy      String
+  creator        User           @relation(fields: [createdBy], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([location])
+  @@index([employmentType])
+}
+
+model Article {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  content     String
+  coverImage  String?
+  category    String
+  tags        String[]  @default([])
+  authorId    String
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  author      User      @relation(fields: [authorId], references: [id])
+
+  @@index([category])
+  @@index([publishedAt])
+}
+
+model Event {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  banner      String?
+  location    String
+  startDate   DateTime
+  endDate     DateTime
+  organizerId String
+  eventType   EventType
+  organizer   User      @relation(fields: [organizerId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([startDate])
+  @@index([eventType])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  userId    String
+  projectId String
+  content   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  projectId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  projectId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  recipientId String
+  type        NotificationType
+  message     String
+  metadata    Json?
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  recipient   User             @relation("RecipientNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, isRead])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String   @unique
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  revokedAt    DateTime?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordReset {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailVerification {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id         String       @id @default(uuid())
+  reporterId String
+  projectId  String?
+  reason     String
+  status     ReportStatus @default(open)
+  createdAt  DateTime     @default(now())
+  reporter   User         @relation("Reporter", fields: [reporterId], references: [id])
+  project    Project?     @relation(fields: [projectId], references: [id])
+
+  @@index([status])
+}
+
+model SearchLog {
+  id        String   @id @default(uuid())
+  query     String
+  userId    String?
+  filters   Json?
+  createdAt DateTime @default(now())
+
+  @@index([query])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+}
