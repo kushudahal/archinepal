@@ -12,7 +12,7 @@ import { getDashboardSummary, type DashboardSummary } from "@/services/users.ser
 type DashboardSummaryPageProps = {
   title: string;
   eyebrow: string;
-  mode: "projects" | "analytics" | "bookmarks" | "followers" | "notifications" | "settings";
+  mode: "projects1" | "analytics" | "bookmarks" | "followers" | "notifications" | "settings";
 };
 
 export function DashboardSummaryPage({ title, eyebrow, mode }: DashboardSummaryPageProps) {
